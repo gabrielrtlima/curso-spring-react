@@ -3,26 +3,30 @@ package com.gabrielrtlima.minhasfinancasapi.services;
 import com.gabrielrtlima.minhasfinancasapi.exceptions.RegraNegocioException;
 import com.gabrielrtlima.minhasfinancasapi.model.entities.Usuario;
 import com.gabrielrtlima.minhasfinancasapi.model.repositories.UsuarioRepository;
+import com.gabrielrtlima.minhasfinancasapi.services.impl.UsuarioServiceImpl;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.Mockito;
 import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
+
 @ActiveProfiles("test")
 public class UsuarioServiceTest {
 
-    @Autowired
     UsuarioService service;
-
-    @Autowired
     UsuarioRepository repository;
+
+    @BeforeEach
+    public void setUp() {
+        repository = Mockito.mock(UsuarioRepository.class);
+        service = new UsuarioServiceImpl(repository);
+    }
 
     @Test
     public void deveValidarEmail() {
         //cenario
-        repository.deleteAll();
+        Mockito.when(repository.existsByEmail(Mockito.anyString())).thenReturn(false);
 
         //acao
         service.validarEmail("email@email.com");
@@ -31,9 +35,9 @@ public class UsuarioServiceTest {
 
     @Test
     public void deveLancarErroAoValidarEmailQuandoExistirEmailCadastado() {
-        Assertions.assertDoesNotThrow(() -> {
+        Assertions.assertThrows(RegraNegocioException.class, () -> {
             // cenario
-            Usuario usuario = Usuario.builder().nome("usuario").email("email@email.com").build();
+            Mockito.when(repository.existsByEmail(Mockito.anyString())).thenReturn(true);
 
             //acao
             service.validarEmail("email@email");
